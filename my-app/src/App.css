@@ -1,0 +1,17 @@
+body
+{
+    background-color:#191d28;
+    width: 100%;
+    padding: 5px;
+}
+
+.headerpart
+{
+  display: inline-block;
+  width: 100%;
+}
+
+.container
+{
+    max-width: 1400px;
+}

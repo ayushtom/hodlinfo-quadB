@@ -1,0 +1,28 @@
+body
+{
+    background-color:#191d28;
+    width: 100%;
+    padding: 5px;
+}
+
+
+
+.container
+{
+    max-width: 1400px;
+}
+
+.telegram
+{
+    background-color: #61b4b6;
+    color: azure;
+    margin:75px 100px
+}
+    
+.headerpart
+{
+    height: 12rem;
+    margin: 2rem;
+    width: 100%;
+    padding: 0;
+}
