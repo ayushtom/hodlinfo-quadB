@@ -11,8 +11,32 @@ const Wazir = async (a,b) => {
         var response={}
         a=a.toLowerCase()
         b=b.toLowerCase()
-        
-        const url="https://api.wazirx.com/api/v2/tickers/"+a+b;
+        var url="https://api.wazirx.com/api/v2/tickers/";
+        var btc={buy:parseInt(1),sell:parseInt(1),last:parseInt(1)}
+        if(a=="iost")
+        {
+            var interResult=await fetch(url+"btcinr")
+            var interRes=await interResult.json();
+            let interArr = Object.keys(interRes);
+            var interElement;
+            for(var i=0;i<interArr.length;i++)
+            {
+                if(interArr[i]=='ticker')
+                {
+                    interElement= interRes[interArr[i]];
+                }
+            }
+
+            btc={
+                buy:parseFloat(interElement.buy),
+                sell:parseFloat(interElement.sell),
+                last:parseFloat(interElement.last)
+            }
+            console.log(btc);
+            b="btc";
+
+        }
+        url="https://api.wazirx.com/api/v2/tickers/"+a+b;
         var results=await fetch(url)
         var res=await results.json();
         let arr = Object.keys(res);
@@ -24,9 +48,15 @@ const Wazir = async (a,b) => {
                 element= res[arr[i]];
             }
         }
+
+        var finalElement={
+            buy:btc.buy*element.buy,
+            sell:btc.sell*element.sell,
+            last:btc.last*element.last
+        }
         
         
-        response={name:name,buy:parseInt(element.buy),sell:parseInt(element.sell),last:parseInt(element.last)}
+        response={name:name,buy:parseFloat(finalElement.buy),sell:parseFloat(finalElement.sell),last:parseFloat(finalElement.last)}
         return response
     }
 
@@ -76,6 +106,29 @@ const coindcx = async (a,b) => {
     try{
         var response={}
         const url="https://api.coindcx.com/exchange/ticker"
+        var btc={buy:parseInt(1),sell:parseInt(1),last:parseInt(1)}
+
+        if(a=="IOST")
+        {
+            var interResult=await fetch(url)
+            var interRes=await interResult.json();
+            let interElement;
+            
+            for(var i=0;i<interRes.length;i++)
+            {
+                if(interRes[i].market==("BTCINR"))
+                {
+                    interElement=interRes[i];
+                }
+            }
+
+            btc={
+                buy:parseFloat(interElement.bid),
+                sell:parseFloat(interElement.ask),
+                last:parseFloat(interElement.last_price)
+            }
+            b="BTC"
+        }
         var result=await fetch(url)
         var res=await result.json();
         let element;
@@ -86,8 +139,15 @@ const coindcx = async (a,b) => {
                 element=res[i];
             }
         }
+
+        var finalElement={
+            buy:btc.buy*element.bid,
+            sell:btc.sell*element.ask,
+            last:btc.last*element.last_price
+        }
+        console.log(element);
         
-        response={name:name,buy:parseInt(element.bid),sell:parseInt(element.ask),last:parseInt(element.last_price)};
+        response={name:name,buy:parseFloat(finalElement.buy),sell:parseFloat(finalElement.sell),last:parseFloat(finalElement.last)}
        
         return response
     }
@@ -172,17 +232,16 @@ const getResult = async (a,b) => {
 
         if(element!=null)
         {
-            buy[flag]=element.buy
-            sell[flag]=element.sell
-            name[flag]=element.name
-            lastTradePrice[flag]=element.last
+            buy[flag]=(element.buy).toFixed(2)
+            sell[flag]=(element.sell).toFixed(2)
+            name[flag]=(element.name)
+            lastTradePrice[flag]=(element.last).toFixed(2)
             avg_trading_price=element.last+avg_trading_price
             flag+=1;
         }
     }
     // console.log(results[0]);
     avg_trading_price=avg_trading_price/(flag+1);
-    console.log(avg_trading_price);
     for(var i=0;i<flag;i++)
     {
         difference[i]=(((lastTradePrice[i]-avg_trading_price)/avg_trading_price)*100).toFixed(2)
@@ -209,9 +268,8 @@ const getResult = async (a,b) => {
         var s1=query.split("-")
         let result=await getResult(s1[0],s1[1]);
         const data=await mainTable.create({mainData:result,pair:query})
-        res.render('index',{
-            dataTable : result
-        }); 
+        console.log(result);
+        res.json(result)
     })
 
 module.exports = router;
