@@ -1,14 +1,11 @@
 import React,{useState} from 'react';
-import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Form } from 'reactstrap';
 import './Dropdown.css'
 
-export default function DropDown(props) {
+export default function DropDown({dropdownData,setDropdownData}) {
 
-  var query=props.values;
-  var divided=query.split("-");
   const [dropData, setdropData] = useState({
-    dropData1:divided[0],
-    dropData2:divided[1]
+    dropData1:dropdownData.dropData1,
+    dropData2:dropdownData.dropData2
   })
   
 
@@ -22,9 +19,15 @@ export default function DropDown(props) {
         [name]: value,
       };
     });
+
+    setDropdownData(prevInfo => {
+      return {
+        ...prevInfo,
+        [name]: value,
+      };
+    });
     
-    console.log(dropData);
-    props.change(dropData.dropData1+"-"+dropData.dropData2)
+    
   }
 
   return (
@@ -43,6 +46,8 @@ export default function DropDown(props) {
         <option value="DASH">DASH</option>
         <option value="ZEC">ZEC</option>
         <option value="XEM">XEM</option>
+        <option value="IOST">IOST</option>
+
       </select>
 
     </div>

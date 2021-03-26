@@ -14,8 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   mainTable.init({
-    mainData: DataTypes.JSON,
-    pair: DataTypes.STRING
+    mainData: DataTypes.JSONB,
+    pair: DataTypes.STRING,
+    avg_high: DataTypes.DECIMAL,
+    stats: DataTypes.JSONB
   }, {
     sequelize,
     tableName:"mainTable",

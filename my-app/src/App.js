@@ -10,22 +10,16 @@ const axios = require('axios');
 
 export default function App() {
 
-  const [dropdownData,setDropdownData]=useState("BTC-INR")
+  const [dropdownData,setDropdownData]=useState(
+    {dropData1:"BTC",
+    dropData2:"INR"})
   const [info, setInfo] = useState([])
-
-  function changeDropState(value)
-  {
-    setDropdownData(value)
-
-    console.log(dropdownData);
-
-  }
 
   useEffect(() =>
   {
     axios.get('http://localhost:5000',{
       params: {
-        search_type: dropdownData
+        search_type: dropdownData.dropData1+"-"+dropdownData.dropData2
       }
     })
     .then(function (response) {
@@ -38,37 +32,13 @@ export default function App() {
       console.log(error+"yay");
     })}, [dropdownData])
 
-    useEffect(()=>
-  {
-    setTimeout(()=>{
-      axios.get('http://localhost:5000',{
-      params: {
-        search_type: dropdownData
-      }
-    })
-    .then(function (response) {
-      // handle success
-      var res=response.data
-      setInfo(res)
-    })
-    .catch(function (error) {
-      // handle error
-      console.log(error+"yay");
-    })
-
-    console.log("yay")
-    },60000);
-
-
-  },[info])
-
-
+    
   
   return (
     <div className="App container">
       <div className="row headerpart">
       <Logo className="col-4"/>
-      <DropDown  values={dropdownData} change={changeDropState} className="col-4"/>
+      <DropDown  dropdownData={dropdownData} setDropdownData={setDropdownData} className="col-4"/>
       <button type="button" className="btn telegram align-self-right col-4">Connect Telegram</button>
       </div>
       <DataTable values={info}/>

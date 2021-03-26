@@ -9,10 +9,16 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       mainData: {
-        type: Sequelize.JSON
+        type: Sequelize.JSONB
       },
       pair: {
         type: Sequelize.STRING
+      },
+      avg_high: {
+        type: Sequelize.DECIMAL
+      },
+      stats: {
+        type: Sequelize.JSONB
       },
       createdAt: {
         allowNull: false,

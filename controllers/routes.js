@@ -3,6 +3,10 @@ const router = express.Router();
 const fetch = require('node-fetch');
 
 const { sequelize ,mainTable} = require('../models');
+const {Op}=require('sequelize');
+
+
+var avg_high_price=0;
 
 const Wazir = async (a,b) => {
     const name="WazirX"
@@ -12,7 +16,7 @@ const Wazir = async (a,b) => {
         a=a.toLowerCase()
         b=b.toLowerCase()
         var url="https://api.wazirx.com/api/v2/tickers/";
-        var btc={buy:parseInt(1),sell:parseInt(1),last:parseInt(1)}
+        var btc={buy:parseInt(1),sell:parseInt(1),last:parseInt(1),high:parseInt(1)}
         if(a=="iost")
         {
             var interResult=await fetch(url+"btcinr")
@@ -30,9 +34,9 @@ const Wazir = async (a,b) => {
             btc={
                 buy:parseFloat(interElement.buy),
                 sell:parseFloat(interElement.sell),
-                last:parseFloat(interElement.last)
+                last:parseFloat(interElement.last),
+                high:parseFloat(interElement.high)
             }
-            console.log(btc);
             b="btc";
 
         }
@@ -52,11 +56,13 @@ const Wazir = async (a,b) => {
         var finalElement={
             buy:btc.buy*element.buy,
             sell:btc.sell*element.sell,
-            last:btc.last*element.last
+            last:btc.last*element.last,
+            high:btc.high*element.high
+
         }
         
         
-        response={name:name,buy:parseFloat(finalElement.buy),sell:parseFloat(finalElement.sell),last:parseFloat(finalElement.last)}
+        response={name:name,buy:parseFloat(finalElement.buy),sell:parseFloat(finalElement.sell),last:parseFloat(finalElement.last),high:parseFloat(finalElement.high)}
         return response
     }
 
@@ -88,7 +94,7 @@ const giottus = async (a,b) => {
             }
         }
        
-        response={name:name,buy:parseInt(element.buy),sell:parseInt(element.sell),last:parseInt(element.last)}
+        response={name:name,buy:parseFloat(element.buy),sell:parseFloat(element.sell),last:parseFloat(element.last),high:parseFloat(finalElement.high)}
         
         
         return response
@@ -106,7 +112,7 @@ const coindcx = async (a,b) => {
     try{
         var response={}
         const url="https://api.coindcx.com/exchange/ticker"
-        var btc={buy:parseInt(1),sell:parseInt(1),last:parseInt(1)}
+        var btc={buy:parseInt(1),sell:parseInt(1),last:parseInt(1),high:parseInt(1)}
 
         if(a=="IOST")
         {
@@ -125,7 +131,8 @@ const coindcx = async (a,b) => {
             btc={
                 buy:parseFloat(interElement.bid),
                 sell:parseFloat(interElement.ask),
-                last:parseFloat(interElement.last_price)
+                last:parseFloat(interElement.last_price),
+                high:parseFloat(interElement.high)
             }
             b="BTC"
         }
@@ -143,11 +150,11 @@ const coindcx = async (a,b) => {
         var finalElement={
             buy:btc.buy*element.bid,
             sell:btc.sell*element.ask,
-            last:btc.last*element.last_price
+            last:btc.last*element.last_price,
+            high:btc.high*element.high
         }
-        console.log(element);
         
-        response={name:name,buy:parseFloat(finalElement.buy),sell:parseFloat(finalElement.sell),last:parseFloat(finalElement.last)}
+        response={name:name,buy:parseFloat(finalElement.buy),sell:parseFloat(finalElement.sell),last:parseFloat(finalElement.last),high:parseFloat(finalElement.high)}
        
         return response
     }
@@ -175,7 +182,7 @@ const colodax = async (a,b) => {
             }
         }
         
-        response={name:name,buy:parseInt(element.lowestAsk),sell:parseInt(element.highestBid),last:parseInt(element.last_price)};
+        response={name:name,buy:parseFloat(element.highestBid),sell:parseFloat(element.lowestAsk),last:parseFloat(element.last_price),high:parseFloat(element.highestBid)};
       
         return response
     }
@@ -203,9 +210,16 @@ const bitbns = async (a,b) => {
                 element=res[arr[i]];
             }
         }
+
+        let brr = Object.keys(element);
+        let high;
+        for (let i = 0; i < brr.length; i++) {
+            if(brr[i]=="volume")
+            high = parseFloat(element[brr[i]].max);
+            
+        }
         
-        response={name:name,buy:parseInt(element.highest_buy_bid),sell:parseInt(element.lowest_sell_bid),last:parseInt(element.last_traded_price)};
-      
+        response={name:name,buy:parseFloat(element.highest_buy_bid),sell:parseFloat(element.lowest_sell_bid),last:parseFloat(element.last_traded_price),high};
         return response
     }
 
@@ -226,6 +240,7 @@ const getResult = async (a,b) => {
     var difference=[]
     var savings=[]
     var avg_trading_price=0;
+    avg_high_price=0;
     var flag=0;
     for (let i = 0; i < final_functions.length; i++) {
         const element = await final_functions[i](a,b);
@@ -238,10 +253,12 @@ const getResult = async (a,b) => {
             lastTradePrice[flag]=(element.last).toFixed(2)
             avg_trading_price=element.last+avg_trading_price
             flag+=1;
+            avg_high_price+=element.high
         }
     }
     // console.log(results[0]);
-    avg_trading_price=avg_trading_price/(flag+1);
+    avg_trading_price=(avg_trading_price/(flag+1)).toFixed(2);
+    avg_high_price=(avg_high_price/(flag+1)).toFixed(2)
     for(var i=0;i<flag;i++)
     {
         difference[i]=(((lastTradePrice[i]-avg_trading_price)/avg_trading_price)*100).toFixed(2)
@@ -259,6 +276,22 @@ const getResult = async (a,b) => {
     return final_results
 }
 
+function getavghigh(parameter)
+{
+    let value;
+    let arr = Object.keys(parameter);
+    for(var i=0;i<arr.length;i++)
+    {
+        if(arr[i]=="avg_high")
+        {
+            value=parameter[arr[i]]
+        }
+    }
+    return value
+
+
+}
+
     router.get("/",async (req,res)=> {
         
         let query=req.query.search_type
@@ -267,8 +300,66 @@ const getResult = async (a,b) => {
         }
         var s1=query.split("-")
         let result=await getResult(s1[0],s1[1]);
-        const data=await mainTable.create({mainData:result,pair:query})
-        console.log(result);
+        let datedata=[]
+        const min5 = await mainTable.findAll({
+            where: {
+              
+              createdAt: {
+                [Op.lte]: new Date(new Date() - 5 * 60 * 1000),
+              },
+              pair:{
+                [Op.eq]:query
+              }
+            },
+            raw: true,
+          });
+          const min60 = await mainTable.findAll({
+            where: {
+              
+              createdAt: {
+                [Op.lte]: new Date(new Date() - 60 * 60 * 1000),
+              },
+              pair:{
+                [Op.eq]:query
+              }
+            },
+            raw: true,
+          });
+          const day1 = await mainTable.findAll({
+            where: {
+              
+              createdAt: {
+                [Op.lte]: new Date(new Date() - 24 * 60 * 60 * 1000),
+              },
+              pair:{
+                [Op.eq]:query
+              }
+            },
+            raw: true,
+          });
+          const day7 = await mainTable.findAll({
+            where: {
+              
+              createdAt: {
+                [Op.lte]: new Date(new Date() - 7*24 * 60 * 60 * 1000),
+              },
+              pair:{
+                [Op.eq]:query
+              }
+            },
+            raw: true,
+          });
+          var obj={
+              min5,
+              min60,
+              day1,
+              day7 
+
+          }
+          datedata.push(obj)
+
+        const data=await mainTable.create({mainData:result,pair:query,avg_high:avg_high_price,stats:datedata})
+        console.log(data);
         res.json(result)
     })
 
