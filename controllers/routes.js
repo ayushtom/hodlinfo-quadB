@@ -292,6 +292,12 @@ function getavghigh(parameter)
 
 }
 
+function getpercentage(a,b)
+{
+    return parseFloat(((a-b)/b)*100)
+
+}
+
     router.get("/",async (req,res)=> {
         
         let query=req.query.search_type
@@ -301,6 +307,8 @@ function getavghigh(parameter)
         var s1=query.split("-")
         let result=await getResult(s1[0],s1[1]);
         let datedata=[]
+        let min5_percentage="",min60_percentage="",day1_percentage="",day7_percentage="";
+
         const min5 = await mainTable.findAll({
             where: {
               
@@ -313,6 +321,13 @@ function getavghigh(parameter)
             },
             raw: true,
           });
+          if(min5[min5.length-1]!=null)
+          { 
+            let min5_ans=getavghigh(min5[min5.length-1])
+            min5_percentage=getpercentage(min5_ans,avg_high_price)
+          }
+
+
           const min60 = await mainTable.findAll({
             where: {
               
@@ -325,6 +340,12 @@ function getavghigh(parameter)
             },
             raw: true,
           });
+          if(min60[min60.length-1]!=null)
+          { 
+            let min60_ans=getavghigh(min60[min60.length-1])
+            min60_percentage=getpercentage(min60_ans,avg_high_price)
+          }
+
           const day1 = await mainTable.findAll({
             where: {
               
@@ -337,6 +358,12 @@ function getavghigh(parameter)
             },
             raw: true,
           });
+          if(day1[day1.length-1]!=null)
+          {
+            let day1_ans=getavghigh(day1[day1.length-1])
+            day1_percentage=getpercentage(day1_ans,avg_high_price)
+          }
+
           const day7 = await mainTable.findAll({
             where: {
               
@@ -349,17 +376,24 @@ function getavghigh(parameter)
             },
             raw: true,
           });
+          if(day7[day7.length-1]!=null)
+          {
+            let day7_ans=getavghigh(day7[day7.length-1])
+            day7_percentage=getpercentage(day7_ans,avg_high_price)
+          }
+          
+
           var obj={
-              min5,
-              min60,
-              day1,
-              day7 
+              min5_percentage,
+              min60_percentage,
+              day1_percentage,
+              day7_percentage 
 
           }
           datedata.push(obj)
 
+
         const data=await mainTable.create({mainData:result,pair:query,avg_high:avg_high_price,stats:datedata})
-        console.log(data);
         res.json(result)
     })
 
